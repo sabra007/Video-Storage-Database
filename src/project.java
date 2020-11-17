@@ -104,7 +104,7 @@ public class project {
 			
 			while(running) {
 	
-				System.out.println("MAIN MENU");
+				System.out.println("\nMAIN MENU");
 				System.out.println("---------");
 				System.out.println("0. Test (Just a test should print 'Dylan'");
 				System.out.println("1. View Video ");
@@ -114,7 +114,7 @@ public class project {
 				System.out.println("5. View recommended videos"); 
 				System.out.println("6. View most popular videos");
 				System.out.println("7. View most popular channels");
-				System.out.println("11. EXIT");
+				System.out.println("11. EXIT\n");
 				
 				 switch (readChoice()) {
 				   case 0: testcase(esql); break;
@@ -228,8 +228,15 @@ public class project {
 	}
 	public static void searchVideo(project esql) {
 	     try {
-	            String query = 	"";
+	    		String input;
+	    	 	String query = 	"";
 	            
+	            System.out.println("Enter video name");
+	            
+	            input = (in.readLine());
+	            
+	            query = "SELECT vin as video_id, title FROM video WHERE title ILIKE '%" + input + "%';";
+	            		
 	            esql.executeQuery(query);
 	 
 	        } catch (Exception e) {
@@ -250,7 +257,9 @@ public class project {
 	}
 	public static void popVideos(project esql) {
 	     try {
-	            String query = 	"";
+	    	 
+	            String query = 	"SELECT vin as video_id, title FROM video ORDER BY (numlikes-numdislikes) DESC LIMIT 20;";
+	            System.out.println("20 Most popular videos\n");
 	            
 	            esql.executeQuery(query);
 	 
@@ -261,7 +270,8 @@ public class project {
 	}
 	public static void popchannels(project esql) {
 	     try {
-	            String query = 	"";
+	    	 	String query = 	"SELECT cname as channel_name FROM channel ORDER BY (numsubs) DESC LIMIT 20;";
+	            System.out.println("20 Most popular channels\n");
 	            
 	            esql.executeQuery(query);
 	 
