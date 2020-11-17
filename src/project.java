@@ -188,8 +188,15 @@ public class project {
 	}
 	public static void viewVideo(project esql) {
 	     try {
-	            String query = 	"";
+	    	 	String input;
+	    	 	String query = 	"";
 	            
+	            System.out.println("Enter video name");
+	            
+	            input = (in.readLine());
+	            
+	            query = "SELECT vin as video_id, title FROM video WHERE title ILIKE '%" + input + "%';";
+	            		
 	            esql.executeQuery(query);
 	 
 	        } catch (Exception e) {
