@@ -4,8 +4,10 @@ import java.io.*;
 
 public class project {
 	
-	private Connection _connection = null;
+	private static Connection _connection = null;
 	static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+	static String username = "";
+	static boolean loggedin = false;
 	
 	public project(String dbname, String dbport, String user, String passwd) throws SQLException {
 		System.out.print("Connecting to database...");
@@ -97,7 +99,8 @@ public class project {
 			String uname = "postgres";
 			String password = "123581321";
 			
-		
+			username = "Not logged in";
+			
 			
 			esql = new project(dbname, dbport, uname, password);
 			boolean running = true;
@@ -105,8 +108,12 @@ public class project {
 			while(running) {
 	
 				System.out.println("\nMAIN MENU");
+				System.out.println("Logged in as: " + username);
 				System.out.println("---------");
-				System.out.println("0. Test (Just a test should print 'Dylan'");
+				if(!loggedin)
+					System.out.println("0. Login");
+				else
+					System.out.println("0. Logout");
 				System.out.println("1. View Video ");
 				System.out.println("2. Upload a video");
 				System.out.println("3. Delete a video");
@@ -117,7 +124,7 @@ public class project {
 				System.out.println("11. EXIT\n");
 				
 				 switch (readChoice()) {
-				   case 0: testcase(esql); break;
+				   case 0: login(esql); break;
 				   case 1: viewVideo(esql); break;
 				   case 2: uploadVideo(esql); break;
 				   case 3: deleteVideo(esql); break;
@@ -174,13 +181,45 @@ public class project {
 		 
 	} //end readChoice
 	
-	public static void testcase(project esql) {
+	public static void login(project esql) {
 		
 		try {
-        	String query = "select fname from user1 where uid = 3;";
-        	
-            esql.executeQuery(query);
- 
+			
+			if (!loggedin) {
+				String uname;
+				String password;
+	        	String query = "";
+	        	System.out.println("Enter Username: ");
+	        	uname = in.readLine();
+	        	System.out.println("Enter password: ");
+	        	password = in.readLine();
+	        	
+	        	query = "SELECT * from user1 WHERE uname ='" + uname + "' AND password = '" + password + "';"  ;
+	        	
+	        	Statement stmt = _connection.createStatement();
+	        	 
+	 	        // issues the query instruction
+	 	        ResultSet rs = stmt.executeQuery(query);
+	 	        
+	 	        rs.next();
+	 	       
+	 	        if (uname.equals(rs.getString(4)) && password.equals(rs.getString(11))) {
+	 	        	System.out.println("Successfully logged in");
+	 	        	username = uname;
+	 	        	loggedin = true;
+	 	        }
+	 	        else {
+	 	        	System.out.println("Wrong username or password");
+	 	        }
+			}
+			else {
+				
+				username = "Not logged in";
+				loggedin = false;
+				System.out.println("Successfully logged out");
+			}
+			
+ 	        
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
