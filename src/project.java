@@ -303,7 +303,7 @@ public class project {
 	            }
 	            else {
 	            
-	            	String vin = ""; //primary key
+	            	int vin; //primary key
 	            	int cid = 0; // channel id
 	            	String desc = ""; //description
 	            	String category = "";
@@ -316,13 +316,13 @@ public class project {
 	            	// gets the current number of videos in the video table increments by 1 and sets it as 
 		 	        // vid for the new video
 	            		
-	            	String query1 = "SELECT COUNT(vin) FROM video";
+	            	String query1 = "SELECT MAX(vin) FROM video";
 	            	Statement stmt = _connection.createStatement();
 		 	        ResultSet rs = stmt.executeQuery(query1);
 		 	        
 		 	        rs.next();
 		 	        
-		 	        vin = Integer.toString(rs.getInt(1) + 1 ); 
+		 	        vin = rs.getInt(1) + 1; 
 		 	        
 		 	        // 2. get cin
 		 	        // find the channel of the current user channel table
@@ -346,11 +346,17 @@ public class project {
 		 	        System.out.println("Enter video title");
 		 	        title = (in.readLine());
 		 	        
+		 	        if(title.isEmpty()) 
+		 	        { 
+		 	        	System.out.println("Can't upload a video without a title");
+		 	        	return;
+		 	        }
+		 	        
 		 	        // ready to insert into video table
 		 	        // INSERT INTO table_name(column1, column2, …)
 		 	        // VALUES (value1, value2, …);
 		 	        query = "INSERT INTO video (vin, cid, uid, numLikes, numDislikes, numViews, description, category, title, publicationDate) "
-		 	        		+ "VALUES ('" + vin + "', " + cid + ", " + userid + ", " + "0, 0, 0 ,'" + desc + "', '" + category + "', '" + title  + "', '" + curDate +"');";
+		 	        		+ "VALUES (" + vin + ", " + cid + ", " + userid + ", " + "0, 0, 0 ,'" + desc + "', '" + category + "', '" + title  + "', '" + curDate +"');";
 		 	      
 	            }
 	            
@@ -388,7 +394,7 @@ public class project {
 			 	  	
 			 	  	try {
 			 	  		
-			 	  		String query3 = "SELECT uid from video WHERE vin ='"+ vin + "';"  ;
+			 	  		String query3 = "SELECT uid from video WHERE vin ="+ vin + ";"  ;
 			        	
 			        	Statement stmt = _connection.createStatement();
 			        	 
@@ -510,10 +516,41 @@ public class project {
 	
 	public static void createChannel(project esql) {
 	     try {
-	    	 	String query = 	"SELECT cname as channel_name FROM channel ORDER BY (numsubs) DESC LIMIT 20;";
-	            System.out.println("20 Most popular channels\n");
+	    	 	
+	    	 	if(!loggedin) {
+	            	System.out.println("Log in to create a channel");
+	            	return;
+	            }
+	            else {
+	            	
+	            	int cid = 0;
+	            	String cname = "";
+	            	
+	            	// 1. get the new cid
+	            	// gets the current number of channels in the channel table increments by 1 and sets it as 
+		 	        // cid for the new channel
+	            		
+	            	String query1 = "SELECT COUNT(cid) FROM channel";
+	            	Statement stmt = _connection.createStatement();
+		 	        ResultSet rs = stmt.executeQuery(query1);
+		 	        
+		 	        rs.next();
+		 	        
+		 	        cid = rs.getInt(1) + 1; 
+	            	
+		 	        System.out.println("Enter channel name");
+		 	        cname = (in.readLine());
+	            	
+		 	        String query = "INSERT INTO channel (cid, numSubs, numLikes, cname, cage, uid) "
+		 	        		+ "VALUES (" + cid + ", 0, 0, '" + cname + "', 0, " + userid + ");";
+		 	       esql.executeUpdate(query);
+		 	    
+		 	       System.out.println("Channel Created");
+	            }
+	               
 	            
-	            esql.executeQuery(query);
+	            
+	            
 	 
 	        } catch (Exception e) {
 	            System.err.println(e.getMessage());
