@@ -447,11 +447,35 @@ public class project {
 	        }
 		
 	}
+	
+	/*
+	 * Finds most liked videos matching favorite category of the user
+	 * */
 	public static void viewRecommendedVideos(project esql) {
 	     try {
-	            String query = 	"";
+	           
 	            
-	            esql.executeQuery(query);
+	            if(!loggedin) {
+	            	System.out.println("Not logged in");
+	            	return;
+	            }
+	            else {
+	            	
+	            	// get users favorite category
+	            	
+	            	String fav_cat = "";
+	            	
+	            	String query1 = "SELECT fav_cat from user1 where uid = " + userid + ";";
+	            	
+	            	Statement stmt = _connection.createStatement();
+		 	        ResultSet rs = stmt.executeQuery(query1);
+		 	        rs.next();
+	            	fav_cat = rs.getString(1);
+	            	
+	            	String query = "SELECT vin AS video_id, title FROM video WHERE category = '" + fav_cat + "' ORDER BY numlikes LIMIT 20;";
+	            	esql.executeQuery(query);
+	            }
+	            	
 	 
 	        } catch (Exception e) {
 	            System.err.println(e.getMessage());
