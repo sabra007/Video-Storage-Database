@@ -124,6 +124,7 @@ public class project {
 				System.out.println("6. View most popular videos");
 				System.out.println("7. View most popular channels");
 				System.out.println("8. Create a channel");
+				System.out.println("9. Create an account");
 				System.out.println("11. EXIT\n");
 				
 				 switch (readChoice()) {
@@ -136,6 +137,7 @@ public class project {
 				   case 6: popVideos(esql); break;
 				   case 7: popchannels(esql); break;
 				   case 8: createChannel(esql); break;
+				   case 9: createAccount(esql); break;
 				   case 11: running = false; break;
 				   default : System.out.println("Unrecognized choice!"); break;
 				
@@ -213,9 +215,14 @@ public class project {
 	 	        ResultSet rs = stmt.executeQuery(query);
 	 	        
 	 	       rs.next();
+	 	       System.out.println(rs.getString(4));
+	 	       System.out.println(rs.getString(10));
 	 	       
+	 	       
+	 	       
+	 	    		
 	 	       try {
-	 	    	  if (uname.equals(rs.getString(4)) && password.equals(rs.getString(11))) {
+	 	    	  if (uname.equals(rs.getString(4)) && password.equals(rs.getString(10))) {
 		 	        	System.out.println("Successfully logged in");
 		 	        	username = uname;
 		 	        	userid = rs.getInt(1);
@@ -530,7 +537,7 @@ public class project {
 	            	// gets the current number of channels in the channel table increments by 1 and sets it as 
 		 	        // cid for the new channel
 	            		
-	            	String query1 = "SELECT COUNT(cid) FROM channel";
+	            	String query1 = "SELECT MAX(cid) FROM channel";
 	            	Statement stmt = _connection.createStatement();
 		 	        ResultSet rs = stmt.executeQuery(query1);
 		 	        
@@ -548,13 +555,70 @@ public class project {
 		 	       System.out.println("Channel Created");
 	            }
 	               
-	            
-	            
-	            
-	 
 	        } catch (Exception e) {
 	            System.err.println(e.getMessage());
 	        }
 		
 	}
+	
+	public static void createAccount(project esql) {
+		
+		try {
+			
+			if(loggedin) {
+				System.out.println("Logout to create a new account");
+	            return;
+	        }
+	        else {
+	        	// getting the next uid
+	        	String query1 = "SELECT MAX(uid) FROM user1";
+            	Statement stmt = _connection.createStatement();
+	 	        ResultSet rs = stmt.executeQuery(query1);
+	 	        
+	 	        rs.next();
+	 	        
+	 	        userid = rs.getInt(1) + 1; 
+	        	
+	 	        System.out.println("Enter first name");
+	 	        String fname = (in.readLine());
+	 	        System.out.println("Enter last name");
+	 	        String lname = (in.readLine());
+	  	        System.out.println("Enter phone number");
+	 	        String number = (in.readLine());
+   	 	        System.out.println("Enter your favorite category");
+	 	        String favCat = (in.readLine());
+	 	        System.out.println("Enter your age");
+	 	        int age = Integer.parseInt(in.readLine());
+	 	        System.out.println("Enter your address");
+	 	        String address = (in.readLine());
+	 	        System.out.println("Enter you email");
+	 	        String email = (in.readLine());
+	 	        
+	 	        System.out.println("Enter your username");
+	 	        username = (in.readLine());
+	 	        
+	 	        System.out.println("Enter your password");
+	 	        String password = (in.readLine());
+	        
+
+	 	        String query = String.format("INSERT INTO user1 (uid, fname, lname, uname, phone, address, email, age, fav_cat, password) "
+	 	        		+ "VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s');", userid, fname, lname, username, number, address, email, age, favCat, password);
+	 	        
+	 	        
+	 	        esql.executeUpdate(query);
+	 	        System.out.println("Account Created");
+	 	        loggedin = true;
+	        }
+	               
+	      
+	    	 
+	    	 
+	    	 
+	 
+	   } catch (Exception e) {
+	            System.err.println(e.getMessage());
+	   }
+		
+	}
+	
 }
