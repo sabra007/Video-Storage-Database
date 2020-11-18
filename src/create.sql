@@ -5,10 +5,7 @@ DROP TABLE IF EXISTS Video CASCADE;
 DROP TABLE IF EXISTS Own_by CASCADE;
 DROP TABLE IF EXISTS video_storage CASCADE;
 
--------------
----DOMAINS---
--------------
-CREATE DOMAIN _GENDER VARCHAR(1) CHECK (value IN ( 'F' , 'M' , 'O') );
+
 ------------
 ---TABLES---
 ------------
@@ -19,7 +16,6 @@ CREATE TABLE User1
 	lname VARCHAR(32) NOT NULL,
 	uname VARCHAR(32) NOT NULL UNIQUE,
 	phone VARCHAR(13) NOT NULL,
-	gender1 _GENDER NOT NULL,
 	address VARCHAR(256) NOT NULL,
 	email VARCHAR(50) NOT NULL,
 	age INT NOT NULL,
@@ -80,7 +76,6 @@ COPY User1 (
 	lname,
 	uname,
 	phone,
-	gender1,
 	address,
 	email,
 	age,
