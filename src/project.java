@@ -201,16 +201,25 @@ public class project {
 	 	        // issues the query instruction
 	 	        ResultSet rs = stmt.executeQuery(query);
 	 	        
-	 	        rs.next();
+	 	       rs.next();
 	 	       
-	 	        if (uname.equals(rs.getString(4)) && password.equals(rs.getString(11))) {
-	 	        	System.out.println("Successfully logged in");
-	 	        	username = uname;
-	 	        	loggedin = true;
-	 	        }
-	 	        else {
-	 	        	System.out.println("Wrong username or password");
-	 	        }
+	 	       try {
+	 	    	  if (uname.equals(rs.getString(4)) && password.equals(rs.getString(11))) {
+		 	        	System.out.println("Successfully logged in");
+		 	        	username = uname;
+		 	        	loggedin = true;
+		 	        }
+		 	        else {
+		 	        	System.out.println("Wrong username or password");
+		 	        	return;
+		 	        }
+	 	       }
+	 	       catch(Exception e) {
+	 	    	   System.out.println("Wrong username or password");
+	 	    	   return;
+	 	       }
+	 	       
+	 	       
 			}
 			else {
 				
