@@ -5,9 +5,6 @@ DROP TABLE IF EXISTS Video CASCADE;
 DROP TABLE IF EXISTS Own_by CASCADE;
 DROP TABLE IF EXISTS video_storage CASCADE;
 
----RELATIONS---
-DROP TABLE IF EXISTS Own_By CASCADE;
-
 -------------
 ---DOMAINS---
 -------------
@@ -39,7 +36,9 @@ CREATE TABLE User1
 	numVids INT NOT NULL,
 	cname VARCHAR(32) NOT NULL,
 	cage INT NOT NULL,
-	PRIMARY KEY (cid)
+	uid INT NOT NULL,
+	PRIMARY KEY (cid),
+	FOREIGN KEY (uid) REFERENCES User1(uid)
 );
 
 CREATE TABLE Video
@@ -69,33 +68,12 @@ CREATE TABLE Video_Storage
 	PRIMARY KEY (vid),
 	FOREIGN KEY (vin) REFERENCES Video(vin)
 );
----------------
----RELATIONS---
----------------
-CREATE TABLE Own_By
-(
-	own_id INT NOT NULL,
-	cid INT NOT NULL,
-	uid INT NOT NULL,
-	PRIMARY KEY (own_id),
-	FOREIGN KEY (cid) REFERENCES Channel(cid),
-	FOREIGN KEY (uid) REFERENCES User1(uid)
-);
 
 ----------------------------
 -- INSERT DATA STATEMENTS --
 ----------------------------
 
-COPY Channel (
-	cid,
-	numSubs,
-	numLikes,
-	numVids,
-	cname,
-	cage
-)
-FROM 'channel.csv'
-WITH DELIMITER ',';
+
 
 COPY User1 (
 	uid,
@@ -113,14 +91,20 @@ COPY User1 (
 FROM 'user1.csv'
 WITH DELIMITER ',';
 
-COPY Own_by (
-	own_id,
+
+
+
+COPY Channel (
 	cid,
+	numSubs,
+	numLikes,
+	numVids,
+	cname,
+	cage,
 	uid
 )
-FROM 'own_by.csv'
+FROM 'channel.csv'
 WITH DELIMITER ',';
-
 
 COPY Video (
 	vin,
