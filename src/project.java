@@ -361,15 +361,72 @@ public class project {
 	        }
 		
 	}
+	
+	/*
+	 * prints all the videos that belong to the user
+	 * Deletes the video that user indicates with vin After checking that video belongs to the user
+	 * 
+	 * */
 	public static void deleteVideo(project esql) {
-	     try {
-	            String query = 	"";
-	            
-	            esql.executeQuery(query);
-	 
-	        } catch (Exception e) {
-	            System.err.println(e.getMessage());
-	        }
+		try {
+			if(!loggedin) {
+            	System.out.println("Must be logged in to delete a video");
+            	return;
+            }
+            else {
+			
+            	String query = 	"";
+            	
+    	        try {
+			 	   	String query2 = "SELECT vin AS video_id, title FROM video WHERE uid = " + userid +";";
+			 	    if(esql.executeQuery(query2) == 0) {
+			 	    	 System.out.println("You don't have any videos");
+			 	    	 return;
+			 	    }
+			 	    System.out.println("Enter the video id of the video you want to delete");
+			 	  	String vin = (in.readLine());
+			 	  	
+			 	  	try {
+			 	  		
+			 	  		String query3 = "SELECT uid from video WHERE vin ='"+ vin + "';"  ;
+			        	
+			        	Statement stmt = _connection.createStatement();
+			        	 
+			 	        // issues the query instruction
+			 	        ResultSet rs = stmt.executeQuery(query3);
+			 	        
+			 	        rs.next();
+			 	       
+			 	      
+			 	    	if (userid == rs.getInt(1)) {
+			 	    		System.out.printf("Deleting video %s \n", vin);
+			 	    		query = "DELETE FROM video WHERE vin = '" + vin + "';";
+			 	    		esql.executeUpdate(query);
+			 	    		System.out.printf("Video %s deleted!\n", vin );
+			 	    	}
+			 	    	else {
+			 	    		System.out.println("The selected video is not yours");
+			 	    	}
+				 	        
+			 	  		
+			 	  	}
+			 	  	catch (Exception e) {
+			 	  		System.out.println("Something went wrong");
+			 	  		return;
+			 	  	}
+    	        }
+		 	        catch (Exception e) {
+		 	        	System.out.println("You don't any vidoes");
+		 	        	return;
+		 	        }
+    	        
+            }
+			
+	        
+		} 
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+	    }
 		
 	}
 	public static void searchVideo(project esql) {
