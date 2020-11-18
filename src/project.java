@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.Calendar;
 import java.io.*;
 
 
@@ -7,6 +8,7 @@ public class project {
 	private static Connection _connection = null;
 	static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 	static String username = "";
+	static int userid;
 	static boolean loggedin = false;
 	
 	public project(String dbname, String dbport, String user, String passwd) throws SQLException {
@@ -121,6 +123,7 @@ public class project {
 				System.out.println("5. View recommended videos"); 
 				System.out.println("6. View most popular videos");
 				System.out.println("7. View most popular channels");
+				System.out.println("8. Create a channel");
 				System.out.println("11. EXIT\n");
 				
 				 switch (readChoice()) {
@@ -132,6 +135,7 @@ public class project {
 				   case 5: viewRecommendedVideos(esql); break;
 				   case 6: popVideos(esql); break;
 				   case 7: popchannels(esql); break;
+				   case 8: createChannel(esql); break;
 				   case 11: running = false; break;
 				   default : System.out.println("Unrecognized choice!"); break;
 				
@@ -181,6 +185,13 @@ public class project {
 		 
 	} //end readChoice
 	
+	/*
+	 * if already logged in, sets username to default 'Not logged in'
+	 * else Promts user to enter username and password
+	 * Compares the input values with the user1 table
+	 * If user is found, sets global username to the username and userid to uid from the table
+	 * Set boolean loggedin to true 	
+	*/
 	public static void login(project esql) {
 		
 		try {
@@ -207,6 +218,7 @@ public class project {
 	 	    	  if (uname.equals(rs.getString(4)) && password.equals(rs.getString(11))) {
 		 	        	System.out.println("Successfully logged in");
 		 	        	username = uname;
+		 	        	userid = rs.getInt(1);
 		 	        	loggedin = true;
 		 	        }
 		 	        else {
@@ -234,6 +246,14 @@ public class project {
         }
 		
 	}
+	/*
+	 * Searches video table for input string
+	 * prints video id_s and titles of result
+	 * promts user to select video id of desired video
+	 * 
+	 * needs to actually open the file
+	 *
+	*/
 	public static void viewVideo(project esql) {
 	     try {
 	    	 	String input;
@@ -245,18 +265,96 @@ public class project {
 	            
 	            query = "SELECT vin as video_id, title FROM video WHERE title ILIKE '%" + input + "%';";
 	            		
-	            esql.executeQuery(query);
-	 
+	            
+	            if(esql.executeQuery(query) == 0)
+	            {
+	            	System.out.println("No videos found");
+	            }
+	            else
+	            {
+	            	 System.out.println("Enter video id of the video to watch");
+	            	 input = (in.readLine());
+	            	 System.out.printf("Playing video %s\n", input);
+	            	 System.out.printf("Actual video will be added later\n");
+	            }
+	            
 	        } catch (Exception e) {
 	            System.err.println(e.getMessage());
 	        }
 		
 	}
+	
+	/*
+	 * Checks if the user is logged in 
+	 * promts user to enter video information
+	 * inserts into video table 
+	 * 		increment channel numvids
+	 * 
+	 * needs to actually upload the video file
+	 *
+	*/
 	public static void uploadVideo(project esql) {
 	     try {
 	            String query = 	"";
 	            
-	            esql.executeQuery(query);
+	            if(!loggedin) {
+	            	System.out.println("Must be logged in to upload a video");
+	            	return;
+	            }
+	            else {
+	            
+	            	String vin = ""; //primary key
+	            	int cid = 0; // channel id
+	            	String desc = ""; //description
+	            	String category = "";
+	            	String title = "";
+	            	Calendar calendar = Calendar.getInstance();
+	                java.sql.Date curDate = new java.sql.Date(calendar.getTime().getTime());
+	            	
+	                      	
+	            	// 1. get the vin
+	            	// gets the current number of videos in the video table increments by 1 and sets it as 
+		 	        // vid for the new video
+	            		
+	            	String query1 = "SELECT COUNT(vin) FROM video";
+	            	Statement stmt = _connection.createStatement();
+		 	        ResultSet rs = stmt.executeQuery(query1);
+		 	        
+		 	        rs.next();
+		 	        
+		 	        vin = Integer.toString(rs.getInt(1) + 1 ); 
+		 	        
+		 	        // 2. get cin
+		 	        // find the channel of the current user channel table
+		 	        // 			potential problem - user can have more than 1 channel
+		 	        // 					for now will take the first one
+		 	        try {
+			 	   	String query2 = "SELECT cid FROM channel WHERE uid = " + userid +";";
+		 	        rs = stmt.executeQuery(query2);
+		 	        rs.next();
+		 	        cid = rs.getInt(1); 
+		 	        }
+		 	        catch (Exception e) {
+		 	        	System.out.println("You don't have a channel and can't upload a video without one");
+		 	        	return;
+		 	        }
+		 	        
+		 	        System.out.println("Enter video description (optional)");
+		 	        desc = (in.readLine());
+		 	        System.out.println("Enter video category (optional)");
+		 	        category = (in.readLine());
+		 	        System.out.println("Enter video title");
+		 	        title = (in.readLine());
+		 	        
+		 	        // ready to insert into video table
+		 	        // INSERT INTO table_name(column1, column2, …)
+		 	        // VALUES (value1, value2, …);
+		 	        query = "INSERT INTO video (vin, cid, uid, numLikes, numDislikes, numViews, description, category, title, publicationDate) "
+		 	        		+ "VALUES ('" + vin + "', " + cid + ", " + userid + ", " + "0, 0, 0 ,'" + desc + "', '" + category + "', '" + title  + "', '" + curDate +"');";
+		 	      
+	            }
+	            
+	            esql.executeUpdate(query);
 	 
 	        } catch (Exception e) {
 	            System.err.println(e.getMessage());
@@ -329,5 +427,16 @@ public class project {
 		
 	}
 	
-	
+	public static void createChannel(project esql) {
+	     try {
+	    	 	String query = 	"SELECT cname as channel_name FROM channel ORDER BY (numsubs) DESC LIMIT 20;";
+	            System.out.println("20 Most popular channels\n");
+	            
+	            esql.executeQuery(query);
+	 
+	        } catch (Exception e) {
+	            System.err.println(e.getMessage());
+	        }
+		
+	}
 }
