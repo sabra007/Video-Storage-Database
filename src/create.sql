@@ -42,7 +42,7 @@ CREATE TABLE User1
 
 CREATE TABLE Video
 (
-	vin VARCHAR(16) NOT NULL,
+	vin INT NOT NULL,
 	cid INT NOT NULL,
 	uid INT NOT NULL,
 	numLikes INT NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE Video
 CREATE TABLE Video_Storage
 (
 	vid VARCHAR(16) NOT NULL,
-	vin VARCHAR(16) NOT NULL,
+	vin INT NOT NULL,
 	storageid VARCHAR(16) NOT NULL,
 	PRIMARY KEY (vid),
 	FOREIGN KEY (vin) REFERENCES Video(vin)
