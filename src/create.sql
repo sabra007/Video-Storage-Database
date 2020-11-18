@@ -33,7 +33,6 @@ CREATE TABLE User1
 	cid INT NOT NULL,
 	numSubs INT NOT NULL,
 	numLikes INT NOT NULL,
-	numVids INT NOT NULL,
 	cname VARCHAR(32) NOT NULL,
 	cage INT NOT NULL,
 	uid INT NOT NULL,
@@ -98,7 +97,6 @@ COPY Channel (
 	cid,
 	numSubs,
 	numLikes,
-	numVids,
 	cname,
 	cage,
 	uid
