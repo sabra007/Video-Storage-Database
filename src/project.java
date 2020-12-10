@@ -3,6 +3,12 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.BasicConfigurator;
+
+//import sun.rmi.runtime.RuntimeUtil;
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +17,13 @@ import java.util.Calendar;
 
 public class project
 {
+
+	public static void WriteHTMLPage(String vidID, String title) throws  Exception {
+	FileWriter fileWriter = new FileWriter("video.html");
+	PrintWriter printWriter = new PrintWriter(fileWriter);
+	printWriter.printf("<html><body><h1> </h1></body><body><center><video controls=\"\" width=\"640\" height=\"272\"><source src=\"http://LAPTOP-58G6I6JT:9864/webhdfs/v1/home/%s.mp4?op=OPEN&namenoderpcaddress=localhost:9000&offset=0\" type=\"video/mp4\">Your browser does not support the video tag.</video></center></html>",vidID);
+	printWriter.close();
+	}
 
 	public static void HDFSdownloadVideo(String vidID) throws Exception{
 
@@ -30,7 +43,7 @@ public class project
 		String destination[] = new String [2];
 		destination[0] = "hdfs://localhost:9000/home/" + vidID + ".mp4";
 		//destination[0] = "hdfs://localhost:9000/home/" + vidID
-		destination[1] = "file:///Users/luis/Workspace/youtube/lsanc044/" + vidID + ".mp4";
+		destination[1] = "C:\\Users\\Sargis\\IdeaProjects\\cs179project\\" + vidID + ".mp4";
 		Configuration conf = new Configuration();
 		try {
 
@@ -93,21 +106,16 @@ public class project
 
         }*/
 
+		String source = "C:\\Users\\Sargis\\IdeaProjects\\cs179project\\" + title + ".mp4";
+		String destination = "hdfs://localhost:9000/home/" + vidID + ".mp4";
 
 
-		//destination[0] = from
-		//destination[1] = upload
-		String destination[] = new String [2];
-		//for title do we want to have user enter name of file or just make it that their file must
-		//be the same name as their video title name
-		destination[0] = "file:///Users/luis/Workspace/youtube/lsanc044/" + title + ".mp4";
-		destination[1] = "hdfs://localhost:9000/home/" + vidID + ".mp4";
 		Configuration conf = new Configuration();
 		try {
 
 			// Hadoop DFS Path - Input & Output file
-			Path inputPath = new Path(destination[0]);
-			Path outputPath  = new Path(destination[1]);
+			Path inputPath = new Path(source);
+			Path outputPath  = new Path(destination);
 			FileSystem in_fs = inputPath.getFileSystem(conf);
 			FileSystem out_fs = outputPath .getFileSystem(conf);
 
@@ -151,6 +159,35 @@ public class project
 			e.printStackTrace();
 		}
 	}
+	public static void HDFSdeleteVideo(String vidID) throws IOException {
+		String source = "hdfs://localhost:9000/home/" + vidID + ".mp4";
+		Configuration conf = new Configuration();
+		conf.addResource(new Path(
+				"C:\\hadoop-3.1.0\\etc\\hadoop\\core-site.xml"));
+		FileSystem fs = null;
+		boolean status = false;
+		try {
+			// create a FileSystem object passing configuration object config
+			fs = FileSystem.get(conf);
+			// Create path object and check for its existence
+			Path path = new Path(source);
+			if (fs.exists(path)) {
+				// false indicates do not deletes recursively
+				status = fs.delete(path, false);
+			} else {
+				System.out.println("File does not exist on HDFS");
+				status = false;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// Close file descriptors
+			if (fs != null)
+				fs.close();
+		}
+	}
+
+
 	private static Connection _connection = null;
 	static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 	static String username = "";
@@ -234,7 +271,7 @@ public class project
 	public static void main (String[] args) throws Exception {
 
 
-
+		BasicConfigurator.configure();
 		project esql = null;
 
 		try {
@@ -425,7 +462,10 @@ public class project
 
 			input = (in.readLine());
 
-			query = "SELECT vin as video_id, title FROM video WHERE title ILIKE '%" + input + "%';";
+
+			String title = input;
+			query = "SELECT vin as video_id, title FROM video WHERE title ILIKE '%" + title + "%';";
+
 
 
 			if(esql.executeQuery(query) == 0)
@@ -436,9 +476,11 @@ public class project
 			{
 				System.out.println("Enter video id of the video to watch");
 				input = (in.readLine());
+				String vid = input;
 				System.out.printf("Playing video %s\n", input);
-				HDFSdownloadVideo(input);
-				//System.out.printf("Actual video will be added later\n");
+				WriteHTMLPage(vid,title);
+				File htmlFile = new File("C:\\Users\\Sargis\\IdeaProjects\\cs179project\\video.html");
+				Desktop.getDesktop().browse(htmlFile.toURI());
 			}
 
 		} catch (Exception e) {
@@ -573,6 +615,7 @@ public class project
 							query = "DELETE FROM video WHERE vin = '" + vin + "';";
 							esql.executeUpdate(query);
 							System.out.printf("Video %s deleted!\n", vin );
+							HDFSdeleteVideo(vin);
 						}
 						else {
 							System.out.println("The selected video is not yours");
