@@ -4,6 +4,8 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 //import sun.rmi.runtime.RuntimeUtil;
 import javax.swing.*;
@@ -271,7 +273,9 @@ public class project
 	public static void main (String[] args) throws Exception {
 
 
-		BasicConfigurator.configure();
+		//BasicConfigurator.configure();
+		//Logger.getRootLogger().setLevel(Level.INFO);
+
 		project esql = null;
 
 		try {
@@ -308,10 +312,10 @@ public class project
 					System.out.println("0. Login");
 				else
 					System.out.println("0. Logout");
-				System.out.println("1. View Video ");
+				System.out.println("1. Search for a Video ");
 				System.out.println("2. Upload a video");
 				System.out.println("3. Delete a video");
-				System.out.println("4. Search for a video");
+				System.out.println("4. Search for a channel");
 				System.out.println("5. View recommended videos");
 				System.out.println("6. View most popular videos");
 				System.out.println("7. View most popular channels");
@@ -324,7 +328,7 @@ public class project
 					case 1: viewVideo(esql); break;
 					case 2: uploadVideo(esql); break;
 					case 3: deleteVideo(esql); break;
-					case 4: searchVideo(esql); break;
+					case 4: searchChannel(esql); break;
 					case 5: viewRecommendedVideos(esql); break;
 					case 6: popVideos(esql); break;
 					case 7: popchannels(esql); break;
@@ -353,8 +357,6 @@ public class project
 		} // end finally
 	} //end main
 
-
-	// from old project
 	public static int readChoice() {
 
 		int input;
@@ -402,15 +404,14 @@ public class project
 				query = "SELECT * from user1 WHERE uname ='" + uname + "' AND password = '" + password + "';"  ;
 
 				Statement stmt = _connection.createStatement();
-
+				if (esql.executeQuery(query) == 0)
+					throw new Exception("Wrong username or password");
 				// issues the query instruction
 				ResultSet rs = stmt.executeQuery(query);
 
 				rs.next();
 				System.out.println(rs.getString(4));
 				System.out.println(rs.getString(10));
-
-
 
 
 				try {
@@ -477,10 +478,78 @@ public class project
 				System.out.println("Enter video id of the video to watch");
 				input = (in.readLine());
 				String vid = input;
-				System.out.printf("Playing video %s\n", input);
-				WriteHTMLPage(vid,title);
-				File htmlFile = new File("C:\\Users\\Sargis\\IdeaProjects\\cs179project\\video.html");
-				Desktop.getDesktop().browse(htmlFile.toURI());
+				//checking if vid is correct
+				query = "SELECT vin as video_id, title FROM video WHERE vin = " + input + ";";
+				if(esql.executeQuery(query) == 0) {
+					System.out.printf("You entered a wrong video id.");
+
+				}
+				else {
+					System.out.printf("Playing video %s\n\n", input);
+					WriteHTMLPage(vid, title);
+					File htmlFile = new File("C:\\Users\\Sargis\\IdeaProjects\\cs179project\\video.html");
+					Desktop.getDesktop().browse(htmlFile.toURI());
+
+					System.out.println("Did you like the video? ");
+					System.out.println("1. Like ");
+					System.out.println("2. Dislike ");
+					System.out.println("3. View comments");
+					System.out.println("4. Add a comment");
+					System.out.println("5. Skip ");
+					switch (readChoice2()) {
+						case 1: {
+							System.out.println("You liked the video!");
+							String likedUpdate = "UPDATE Video SET numLikes=numLikes+1 WHERE vin=" + vid + ";";
+							esql.executeUpdate(likedUpdate);
+							break;
+						}
+						case 2: {
+							System.out.println("You disliked the video!");
+							String disLikedUpdate = "UPDATE Video SET numDislikes=numDislikes+1 WHERE vin=" + vid + ";";
+							esql.executeUpdate(disLikedUpdate);
+							break;
+						}
+						case 3: {
+							System.out.println("Reading comments!\n");
+							String readComment = String.format("Select  comms as Comment, user1.uname AS user from comments, user1 Where comments.vin = %s AND user1.uid = comments.uid;", vid);
+							if(esql.executeQuery(readComment) == 0) {
+								System.out.println("There are no comments for this video!");
+							}
+							break;
+						}
+						case 4: {
+							if(!loggedin) {
+								System.out.println("Must be logged in to add a comment");
+							}
+							else {
+								System.out.println("Enter your comment");
+								String comment = (in.readLine());
+								try {
+									// getting the next commentid
+									String query1 = "SELECT MAX(commentid) FROM Comments";
+									Statement stmt = _connection.createStatement();
+									ResultSet rs = stmt.executeQuery(query1);
+
+									rs.next();
+
+									int comid = rs.getInt(1) + 1;
+									String addComment = String.format("INSERT INTO Comments (commentid, vin, comms, uid) VALUES (%d, '%s', '%s', '%s');", comid, vid, comment, userid);
+									esql.executeUpdate(addComment);
+									System.out.println("Your comment was added");
+								} catch (Exception e) {
+									System.out.println("Something went wrong");
+									return;
+								}
+							}
+							break;
+						}
+						case 5:
+							break;
+						default:
+							System.out.println("Unrecognized choice. Skipping!");
+							break;
+					}
+				}
 			}
 
 		} catch (Exception e) {
@@ -489,6 +558,26 @@ public class project
 
 	}
 
+	public static int readChoice2() {
+		int choice = 0;
+		// returns only if a correct value is given.
+		do {
+
+			System.out.print("Please make your choice: ");
+
+			try { // read the integer, parse it and break
+				choice = Integer.parseInt(in.readLine());
+				break;
+
+			} catch (Exception e) {
+				System.out.println("Your input is invalid!");
+				continue;
+			}//end try
+		}
+		while (true);
+
+		return choice;
+	}
 	/*
 	 * Checks if the user is logged in
 	 * promts user to enter video information
@@ -642,18 +731,22 @@ public class project
 		}
 
 	}
-	public static void searchVideo(project esql) {
+	public static void searchChannel(project esql) {
 		try {
 			String input;
 			String query = 	"";
 
-			System.out.println("Enter video name");
+			System.out.println("Enter channel name");
 
 			input = (in.readLine());
 
-			query = "SELECT vin as video_id, title FROM video WHERE title ILIKE '%" + input + "%';";
+			query = "SELECT Video.title FROM channel, video WHERE Video.uid = channel.uid AND cname ILIKE '" + input + "';";
 
-			esql.executeQuery(query);
+			int res = esql.executeQuery(query);
+
+			if(res == 0) {
+				System.out.println("Channel Not found\n");
+			}
 
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
