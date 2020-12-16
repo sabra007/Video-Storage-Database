@@ -3,12 +3,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
-//import sun.rmi.runtime.RuntimeUtil;
-import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.io.BufferedReader;
@@ -21,10 +15,11 @@ public class project
 {
 
 	public static void WriteHTMLPage(String vidID, String title) throws  Exception {
-	FileWriter fileWriter = new FileWriter("video.html");
-	PrintWriter printWriter = new PrintWriter(fileWriter);
-	printWriter.printf("<html><body><h1> </h1></body><body><center><video controls=\"\" width=\"640\" height=\"272\"><source src=\"http://LAPTOP-58G6I6JT:9864/webhdfs/v1/home/%s.mp4?op=OPEN&namenoderpcaddress=localhost:9000&offset=0\" type=\"video/mp4\">Your browser does not support the video tag.</video></center></html>",vidID);
-	printWriter.close();
+		FileWriter fileWriter = new FileWriter("video.html");
+		PrintWriter printWriter = new PrintWriter(fileWriter);
+		printWriter.printf("<html><body><h1> </h1></body><body><center><video controls=\"\" width=\"640\" height=\"272\"><source src=\"http://LAPTOP-58G6I6JT:9864/webhdfs/v1/home/%s.mp4?op=OPEN&namenoderpcaddress=localhost:9000&offset=0\" type=\"video/mp4\">Your browser does not support the video tag.</video></center></html>",vidID);
+		printWriter.close();
+
 	}
 
 	public static void HDFSdownloadVideo(String vidID) throws Exception{
@@ -42,7 +37,7 @@ public class project
 		//find a way to make the destinations neater? if not its fine it just downloads to my workspace folder
 		//for easy testing
 
-		String destination[] = new String [2];
+		String[] destination = new String [2];
 		destination[0] = "hdfs://localhost:9000/home/" + vidID + ".mp4";
 		//destination[0] = "hdfs://localhost:9000/home/" + vidID
 		destination[1] = "C:\\Users\\Sargis\\IdeaProjects\\cs179project\\" + vidID + ".mp4";
@@ -70,7 +65,7 @@ public class project
 			// Create file to write
 			FSDataOutputStream out_stream = out_fs.create(outputPath);
 
-			byte buffer[] = new byte[4096];
+			byte[] buffer = new byte[4096];
 			long b_count = 0;
 			long starting_Time = System.nanoTime();
 			double elapsed_Time_Second = 0;
@@ -404,15 +399,12 @@ public class project
 				query = "SELECT * from user1 WHERE uname ='" + uname + "' AND password = '" + password + "';"  ;
 
 				Statement stmt = _connection.createStatement();
-				if (esql.executeQuery(query) == 0)
-					throw new Exception("Wrong username or password");
-				// issues the query instruction
+
+
 				ResultSet rs = stmt.executeQuery(query);
 
-				rs.next();
-				System.out.println(rs.getString(4));
-				System.out.println(rs.getString(10));
-
+				if(!rs.next())
+					throw new Exception("Wrong username or password");
 
 				try {
 					if (uname.equals(rs.getString(4)) && password.equals(rs.getString(10))) {
@@ -645,13 +637,13 @@ public class project
 					System.out.println("Can't upload a video without a title");
 					return;
 				}
-
+				HDFSuploadVideo(String.valueOf(vin), title);
 				// ready to insert into video table
 				// INSERT INTO table_name(column1, column2, â€¦)
 				// VALUES (value1, value2, â€¦);
 				query = "INSERT INTO video (vin, cid, uid, numLikes, numDislikes, numViews, description, category, title, publicationDate) "
 						+ "VALUES (" + vin + ", " + cid + ", " + userid + ", " + "0, 0, 0 ,'" + desc + "', '" + category + "', '" + title  + "', '" + curDate +"');";
-				HDFSuploadVideo(String.valueOf(vin), title);
+
 			}
 
 			esql.executeUpdate(query);
@@ -701,7 +693,10 @@ public class project
 
 						if (userid == rs.getInt(1)) {
 							System.out.printf("Deleting video %s \n", vin);
-							query = "DELETE FROM video WHERE vin = '" + vin + "';";
+							query = "DELETE FROM video WHERE vin = " + vin + ";";
+							//Need to delete the entries from comment table first
+							String deleteComms = "DELETE FROM comments WHERE vin = " + vin + ";";
+							esql.executeUpdate(deleteComms);
 							esql.executeUpdate(query);
 							System.out.printf("Video %s deleted!\n", vin );
 							HDFSdeleteVideo(vin);
@@ -713,7 +708,7 @@ public class project
 
 					}
 					catch (Exception e) {
-						System.out.println("Something went wrong");
+						System.out.println("Something went wrong line 708");
 						return;
 					}
 				}
@@ -902,11 +897,6 @@ public class project
 				System.out.println("Account Created");
 				loggedin = true;
 			}
-
-
-
-
-
 
 		} catch (Exception e) {
 			System.err.println(e.getMessage());

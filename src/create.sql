@@ -1,9 +1,11 @@
 ---TABLES---
-DROP TABLE IF EXISTS User1 CASCADE;
-DROP TABLE IF EXISTS Channel CASCADE;
+DROP TABLE IF EXISTS Comments CASCADE;
 DROP TABLE IF EXISTS Video CASCADE;
-DROP TABLE IF EXISTS Own_by CASCADE;
-DROP TABLE IF EXISTS video_storage CASCADE;
+DROP TABLE IF EXISTS Channel CASCADE;
+DROP TABLE IF EXISTS User1 CASCADE;
+
+
+
 
 
 ------------
@@ -54,16 +56,16 @@ CREATE TABLE Video
 );
 
 
-
-CREATE TABLE Video_Storage
+CREATE TABLE Comments
 (
-	vid VARCHAR(16) NOT NULL,
+	commentId INT NOT NULL,
 	vin INT NOT NULL,
-	storageid VARCHAR(16) NOT NULL,
-	PRIMARY KEY (vid),
-	FOREIGN KEY (vin) REFERENCES Video(vin)
+	comms VARCHAR(240) NOT NULL,
+	uid INT NOT NULL,
+	PRIMARY KEY (commentId),
+	FOREIGN KEY (vin) REFERENCES Video(vin),
+	FOREIGN KEY (uid) REFERENCES User1(uid)
 );
-
 ----------------------------
 -- INSERT DATA STATEMENTS --
 ----------------------------
