@@ -1,2 +1,3 @@
-PROJECT IN COMPUTER SCIENCE 179G
+Project in CS 179G
+
 By Sargis Abrahamyan and Luis Sanchez
